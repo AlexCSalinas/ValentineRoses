@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Valentine's Question</title>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Times New Roman', Times, serif;
+            background: white;
+            color: black;
+        }
+        h1 {
+            font-size: 36px;
+            margin-bottom: 40px;
+        }
+        .button-container {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .button {
+            padding: 12px 30px;
+            font-size: 18px;
+            font-family: 'Times New Roman', Times, serif;
+            cursor: pointer;
+            background: white;
+            border: 1px solid black;
+        }
+        #noButton {
+            transition: all 0.2s ease;
+        }
+        .celebration {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+        .celebration a {
+            display: inline-block;
+            margin-top: 20px;
+            color: black;
+            text-decoration: none;
+            border-bottom: 1px solid black;
+        }
+        .celebration a:hover {
+            border-bottom: 2px solid black;
+        }
+    </style>
+</head>
+<body>
+    <h1>Will you be my valentine?</h1>
+    <div class="button-container">
+        <button class="button" onclick="celebrate()">Yes</button>
+        <button class="button" id="noButton" onmouseover="moveButton()">No</button>
+    </div>
+    <div class="celebration" id="celebrationText">
+        <h2>Yaaaay!</h2>
+        <a href="roses.html">Click here to see your surprise!</a>
+    </div>
+
+    <script>
+        function moveButton() {
+            const button = document.getElementById('noButton');
+            button.style.position = 'fixed';  // Change to fixed only when moving
+            
+            const windowWidth = window.innerWidth - button.offsetWidth;
+            const windowHeight = window.innerHeight - button.offsetHeight;
+            
+            const randomX = Math.floor(Math.random() * windowWidth);
+            const randomY = Math.floor(Math.random() * windowHeight);
+            
+            button.style.left = randomX + 'px';
+            button.style.top = randomY + 'px';
+        }
+
+        function celebrate() {
+            document.querySelector('.celebration').style.display = 'block';
+            document.querySelector('h1').style.display = 'none';
+            document.querySelector('.button-container').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

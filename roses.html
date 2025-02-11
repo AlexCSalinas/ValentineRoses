@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Rose Bouquet</title>
+    <style>
+        body { margin: 0; background: #ffffff; }
+        canvas { display: block; }
+        #mathExplanation {
+            position: fixed;
+            left: 30px;
+            top: 30px;
+            width: 300px;
+            font-family: "Times New Roman", Times, serif;
+            line-height: 1.6;
+            color: #333;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        #mathExplanation h2 {
+            margin-top: 0;
+        }
+        .equation {
+            margin: 15px 0;
+            font-style: italic;
+        }
+        #zoomSlider {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 150px;
+            opacity: 0.6;
+            transition: opacity 0.2s;
+        }
+        #zoomSlider:hover {
+            opacity: 1;
+        }
+        #zoomSlider input {
+            width: 100%;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div id="mathExplanation">
+        <h2>How These Roses Work</h2>
+        
+        <p>Ever wonder how we can turn math into flower petals? These roses aren't just random shapes - they're built using some fascinating mathematical patterns that mirror how real roses grow.</p>
+        
+        <p>We just have to image how a rose petal would curve and unfurl. Only two base measurements have been taken: the distance to the center x and how many times we have gone around t. Think of it as tracing a snail’s shell, but with more complex curves.</p>
+        
+        <div class="equation">
+            x moves from 0 to 1<br>
+            t wraps around from 4π to 24π
+        </div>
+        
+        <p>All the magic comes when the petals are caused to curl. Each petal follows a tightening spiral of curvature:</p>
+        
+        <div class="equation">
+            p(t) = (π/2)e^(-t/8π)
+        </div>
+        
+        <p>This may seem intimidating, but in reality, each petal is being told how much to curl. The exponential decay (e^(-t)) reduces the curling of the petals as they open up – just like a real rose.</p>
+        
+        <p>To enhance the natural appeal of the petals we include infinitesimal waves along their surface. Those subtle ripples create the difference between a flat boring petal and one that looks alive:</p>
+        
+        <div class="equation">
+            surface ripples = sin(15t)/150
+        </div>
+        
+        <p>Finally, we wrap it all together into coordinates that plot each point of the rose. The colors move fluidly from dark to light through the periodic boundary of height, giving that characteristic rose petal gradient observed in nature.</p>
+        
+        <p>Pretty cool how a few equations can capture something as organic as a rose, right?</p>
+    </div>
+    <div id="zoomSlider">
+        <input type="range" id="zoom" min="2" max="10" step="0.1" value="7">
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0xffffff);
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+
+        let cameraDistance = 4;
+        let cameraX = cameraDistance;
+        let cameraY = -cameraDistance;
+        let cameraZ = cameraDistance;
+        camera.position.set(cameraX, cameraY, cameraZ);
+        camera.lookAt(0, 0, 0);
+
+        const zoomSlider = document.getElementById('zoom');
+        zoomSlider.addEventListener('input', (e) => {
+            cameraDistance = 12 - parseFloat(e.target.value);
+            camera.position.set(
+                (cameraX / Math.abs(cameraX)) * cameraDistance,
+                (cameraY / Math.abs(cameraY)) * cameraDistance,
+                (cameraZ / Math.abs(cameraZ)) * cameraDistance
+            );
+            camera.lookAt(0, 0, 0);
+        });
+
+        const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
+        scene.add(ambientLight);
+        
+        const mainLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        mainLight.position.set(1, 2, 1);
+        scene.add(mainLight);
+        
+        const fillLight = new THREE.DirectionalLight(0xffffff, 0.5);
+        fillLight.position.set(-1, -1, 1);
+        scene.add(fillLight);
+        
+        const sideLight = new THREE.DirectionalLight(0xffffff, 0.4);
+        sideLight.position.set(2, 0, -1);
+        scene.add(sideLight);
+
+        let isDragging = false;
+        let previousMousePosition = { x: 0, y: 0 };
+
+        document.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            previousMousePosition = {
+                x: e.clientX,
+                y: e.clientY
+            };
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if(!isDragging) return;
+            const deltaMove = {
+                x: e.clientX - previousMousePosition.x,
+                y: e.clientY - previousMousePosition.y
+            };
+            const rotationSpeed = 0.005;
+            scene.rotation.y += deltaMove.x * rotationSpeed;
+            scene.rotation.x += deltaMove.y * rotationSpeed;
+            previousMousePosition = {
+                x: e.clientX,
+                y: e.clientY
+            };
+        });
+
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+        });
+
+        function animate() {
+            requestAnimationFrame(animate);
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        function meshgrid(x, y) {
+            const X = [];
+            const Y = [];
+            for(let i = 0; i < y.length; i++) {
+                const row_x = [];
+                const row_y = [];
+                for(let j = 0; j < x.length; j++) {
+                    row_x.push(x[j]);
+                    row_y.push(y[i]);
+                }
+                X.push(row_x);
+                Y.push(row_y);
+            }
+            return [X, Y];
+        }
+
+        function createStem(startPoint) {
+            const curve = new THREE.CubicBezierCurve3(
+                new THREE.Vector3(startPoint.x, startPoint.y, 0.5), 
+                new THREE.Vector3(startPoint.x * 0.6, startPoint.y * 0.6, -0.8), 
+                new THREE.Vector3(startPoint.x * 0.3, startPoint.y * 0.3, -1.5), 
+                new THREE.Vector3(0, 0, -2) 
+            );
+
+            const points = curve.getPoints(50);
+            const geometry = new THREE.TubeGeometry(
+                new THREE.CatmullRomCurve3(points),
+                50, 
+                0.02, 
+                8, 
+                false 
+            );
+
+            const material = new THREE.MeshPhongMaterial({
+                color: 0x587E7E, 
+                shininess: 30
+            });
+
+            return new THREE.Mesh(geometry, material);
+        }
+
+        function createRoseSurface() {
+            const x = Array.from({length: 25}, (_, i) => i / 24);
+            const t = Array.from({length: 1151}, (_, i) => (i * 0.5 / 575) * 20 * Math.PI + 4 * Math.PI);
+            
+            const [xr, tr] = meshgrid(x, t);
+            const rows = tr.length;
+            const cols = tr[0].length;
+
+            const pr = tr.map(row => row.map(t => (Math.PI/2) * Math.exp(-t/(8*Math.PI))));
+            const cr = tr.map(row => row.map(t => Math.sin(15*t)/150));
+            
+            const ur = tr.map((row, i) => row.map((t, j) => {
+                const mod_term = (3.6 * t) % (2 * Math.PI);
+                return 1 - Math.pow(1 - mod_term/Math.PI, 4)/2 + cr[i][j];
+            }));
+
+            const yr = xr.map((row, i) => row.map((x, j) => 
+                2 * Math.pow(x*x - x, 2) * Math.sin(pr[i][j])
+            ));
+
+            const rr = xr.map((row, i) => row.map((x, j) => 
+                ur[i][j] * (x * Math.sin(pr[i][j]) + yr[i][j] * Math.cos(pr[i][j]))
+            ));
+
+            const hr = xr.map((row, i) => row.map((x, j) => 
+                ur[i][j] * (x * Math.cos(pr[i][j]) - yr[i][j] * Math.sin(pr[i][j]))
+            ));
+
+            const geometry = new THREE.BufferGeometry();
+            const vertices = [];
+            const colors = [];
+            let indices = [];
+            let index = 0;
+
+            const colorList = [
+                [0.3300, 0.3300, 0.6900],
+                [0.5300, 0.4000, 0.6800],
+                [0.6800, 0.4200, 0.6300],
+                [0.7800, 0.4200, 0.5700],
+                [0.9100, 0.4900, 0.4700],
+                [0.9600, 0.7300, 0.4400]
+            ];
+
+            let minH = Math.min(...hr.map(row => Math.min(...row)));
+            let maxH = Math.max(...hr.map(row => Math.max(...row)));
+
+            for(let i = 0; i < rows - 1; i++) {
+                for(let j = 0; j < cols - 1; j++) {
+                    const x1 = rr[i][j] * Math.cos(tr[i][j]);
+                    const y1 = rr[i][j] * Math.sin(tr[i][j]);
+                    const z1 = hr[i][j] + 0.35;
+
+                    const x2 = rr[i+1][j] * Math.cos(tr[i+1][j]);
+                    const y2 = rr[i+1][j] * Math.sin(tr[i+1][j]);
+                    const z2 = hr[i+1][j] + 0.35;
+
+                    const x3 = rr[i][j+1] * Math.cos(tr[i][j+1]);
+                    const y3 = rr[i][j+1] * Math.sin(tr[i][j+1]);
+                    const z3 = hr[i][j+1] + 0.35;
+
+                    vertices.push(x1, y1, z1, x2, y2, z2, x3, y3, z3);
+                    indices.push(index, index + 1, index + 2);
+                    index += 3;
+
+                    [hr[i][j], hr[i+1][j], hr[i][j+1]].forEach(h => {
+                        const t = (h - minH) / (maxH - minH);
+                        const colorIndex = Math.min(Math.floor(t * (colorList.length - 1)), colorList.length - 2);
+                        const colorT = (t * (colorList.length - 1)) - colorIndex;
+                        
+                        const color1 = colorList[colorIndex];
+                        const color2 = colorList[colorIndex + 1];
+                        
+                        colors.push(
+                            color1[0] * (1 - colorT) + color2[0] * colorT,
+                            color1[1] * (1 - colorT) + color2[1] * colorT,
+                            color1[2] * (1 - colorT) + color2[2] * colorT
+                        );
+                    });
+
+                    const x4 = rr[i+1][j+1] * Math.cos(tr[i+1][j+1]);
+                    const y4 = rr[i+1][j+1] * Math.sin(tr[i+1][j+1]);
+                    const z4 = hr[i+1][j+1] + 0.35;
+
+                    vertices.push(x2, y2, z2, x4, y4, z4, x3, y3, z3);
+                    indices.push(index, index + 1, index + 2);
+                    index += 3;
+
+                    [hr[i+1][j], hr[i+1][j+1], hr[i][j+1]].forEach(h => {
+                        const t = (h - minH) / (maxH - minH);
+                        const colorIndex = Math.min(Math.floor(t * (colorList.length - 1)), colorList.length - 2);
+                        const colorT = (t * (colorList.length - 1)) - colorIndex;
+                        
+                        const color1 = colorList[colorIndex];
+                        const color2 = colorList[colorIndex + 1];
+                        
+                        colors.push(
+                            color1[0] * (1 - colorT) + color2[0] * colorT,
+                            color1[1] * (1 - colorT) + color2[1] * colorT,
+                            color1[2] * (1 - colorT) + color2[2] * colorT
+                        );
+                    });
+                }
+            }
+
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+            geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+            geometry.setIndex(indices);
+            geometry.computeVertexNormals();
+
+            const material = new THREE.MeshPhongMaterial({
+                vertexColors: true,
+                side: THREE.DoubleSide,
+                shininess: 50,
+                transparent: true,
+                opacity: 0.9
+            });
+
+            return new THREE.Mesh(geometry, material);
+        }
+
+        function createBouquet() {
+            const bouquetGroup = new THREE.Group();
+
+            const positions = [
+                { x: 0, y: 0, z: 0, scale: 1.0 },      // Center
+                { x: 0.8, y: 0, z: 0, scale: 0.95 },   // Right
+                { x: -0.8, y: 0, z: 0, scale: 0.95 },  // Left
+                { x: 0.4, y: 0.7, z: 0, scale: 0.95 }, // Top right
+                { x: -0.3, y: 0.8, z: 0, scale: 0.95 },   // Top
+                { x: 0.4, y: -0.7, z: 0, scale: 0.95 }, // Bottom right
+                { x: -0.4, y: -0.7, z: 0, scale: 0.95 } // Bottom left
+            ];
+
+            positions.forEach((pos) => {
+                const rose = createRoseSurface();
+                rose.position.set(pos.x, pos.y, pos.z);
+                rose.scale.set(pos.scale, pos.scale, pos.scale);
+
+                if (pos.x !== 0 || pos.y !== 0) {
+                    const angleToCenter = Math.atan2(pos.y, pos.x);
+                    const tiltAmount = 0.3;
+                    rose.rotation.x = -pos.y * tiltAmount / Math.sqrt(pos.x * pos.x + pos.y * pos.y);
+                    rose.rotation.y = pos.x * tiltAmount / Math.sqrt(pos.x * pos.x + pos.y * pos.y);
+                }
+
+                const stem = createStem(pos);
+                
+                bouquetGroup.add(rose);
+                bouquetGroup.add(stem);
+            });
+
+            return bouquetGroup;
+        }
+
+        const bouquet = createBouquet();
+        scene.add(bouquet);
+
+        camera.position.set(4, -4, 4);
+        camera.lookAt(0, 0, 0);
+
+        
+
+        document.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            previousMousePosition = {
+                x: e.clientX,
+                y: e.clientY
+            };
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if(!isDragging) return;
+            const deltaMove = {
+                x: e.clientX - previousMousePosition.x,
+                y: e.clientY - previousMousePosition.y
+            };
+            const rotationSpeed = 0.005;
+            scene.rotation.y += deltaMove.x * rotationSpeed;
+            scene.rotation.x += deltaMove.y * rotationSpeed;
+            previousMousePosition = {
+                x: e.clientX,
+                y: e.clientY
+            };
+        });
+
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+        });
+
+        function animate() {
+            requestAnimationFrame(animate);
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
