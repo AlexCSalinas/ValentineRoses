@@ -158,18 +158,6 @@
             isDragging = false;
         });
 
-        function animate() {
-            requestAnimationFrame(animate);
-            renderer.render(scene, camera);
-        }
-        animate();
-
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
-
         function meshgrid(x, y) {
             const X = [];
             const Y = [];
@@ -402,6 +390,12 @@
 
         function animate() {
             requestAnimationFrame(animate);
+            
+            // Add ambient rotation to the bouquet
+            if (!isDragging) {
+                bouquet.rotation.y += 0.003; // Slow ambient rotation around Y-axis
+            }
+            
             renderer.render(scene, camera);
         }
         animate();
