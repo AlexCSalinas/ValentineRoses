@@ -16,16 +16,27 @@
         canvas { display: block; }
         #mathExplanation {
             position: fixed;
-            left: 30px;
-            top: 30px;
-            width: 300px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
             font-family: "Times New Roman", Times, serif;
             line-height: 1.6;
             color: #333;
-            background: rgba(255, 255, 255, 0.9);
-            padding: 20px;
-            max-height: 90vh;
+            background: rgba(255, 255, 255, 0.96);
+            padding: 24px 24px 48px;
+            max-height: 70vh;
             overflow-y: auto;
+            box-shadow: 0 -4px 24px rgba(0,0,0,0.12);
+            border-radius: 16px 16px 0 0;
+            transform: translateY(100%);
+            transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 10;
+        }
+        #mathExplanation.open {
+            transform: translateY(0);
         }
         #mathExplanation h2 {
             margin-top: 0;
@@ -34,6 +45,36 @@
             margin: 15px 0;
             font-style: italic;
         }
+        #textTab {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 11;
+            width: 56px;
+            height: 32px;
+            background: rgba(255, 255, 255, 0.95);
+            border: none;
+            border-radius: 16px 16px 0 0;
+            box-shadow: 0 -2px 12px rgba(0,0,0,0.1);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: #555;
+            transition: background 0.2s, color 0.2s;
+        }
+        #textTab:hover {
+            background: rgba(255, 255, 255, 1);
+            color: #333;
+        }
+        #textTab .arrow {
+            transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        #textTab.open .arrow {
+            transform: rotate(180deg);
+        }
         #zoomSlider {
             position: fixed;
             bottom: 30px;
@@ -41,6 +82,7 @@
             width: 150px;
             opacity: 0.6;
             transition: opacity 0.2s;
+            z-index: 5;
         }
         #zoomSlider:hover {
             opacity: 1;
@@ -52,6 +94,9 @@
     </style>
 </head>
 <body>
+    <button type="button" id="textTab" aria-label="Show math explanation">
+        <span class="arrow">▲</span>
+    </button>
     <div id="mathExplanation">
         <h2>How These Roses Work</h2>
         
@@ -101,6 +146,14 @@
         let cameraZ = cameraDistance;
         camera.position.set(cameraX, cameraY, cameraZ);
         camera.lookAt(0, 0, 0);
+
+        const textTab = document.getElementById('textTab');
+        const mathExplanation = document.getElementById('mathExplanation');
+        textTab.addEventListener('click', () => {
+            const isOpen = mathExplanation.classList.toggle('open');
+            textTab.classList.toggle('open', isOpen);
+            textTab.setAttribute('aria-label', isOpen ? 'Hide math explanation' : 'Show math explanation');
+        });
 
         const zoomSlider = document.getElementById('zoom');
         zoomSlider.addEventListener('input', (e) => {
